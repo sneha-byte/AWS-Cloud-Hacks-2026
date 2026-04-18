@@ -1,5 +1,6 @@
 # Changelog - 2026-04-18
 
+<<<<<<< HEAD
 ## Frontend ↔ Backend Integration
 - Synced frontend stadiums to backend (Lambeau, Allegiant, Yankee replace Camp Nou, Maracanã, Rose Bowl)
 - Synced frontend chaos modes to backend scenario enum (`price_spike`, `sensor_fail`, `api_broken`, `heat_wave`)
@@ -34,6 +35,9 @@
 - Updated `.gitignore` with Python, simulator, and SAM entries
 
 ## Added (backend)
+=======
+## Added
+>>>>>>> f6072ba (feat: scaffold backend/simulator package (Role 2))
 - Scaffolded `backend/simulator/` package (Role 2: Simulator Architect)
   - `schemas.py` — Pydantic models matching Technical-doc §3.1 (TraceRecord), §3.2 (StadiumConfig), Contract A (TracePostBody), Contract C (SessionStart/Stop)
   - `stadiums.py` — 5 hardcoded stadium profiles (Lusail, Lambeau, Wembley, Allegiant, Yankee) with 24-hour climate and grid curves
