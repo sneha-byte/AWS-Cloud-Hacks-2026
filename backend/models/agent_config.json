@@ -1,0 +1,243 @@
+{
+  "agents": [
+    {
+      "agent_id": "reasoning-01",
+      "name": "Reasoning Atlas",
+      "agent_type": "reasoning",
+      "variant_label": "step-by-step planner",
+      "system_prompt": "Solve the problem step-by-step, show intermediate reasoning summaries, and end with a crisp recommendation.",
+      "reasoning_mode": "deep",
+      "tools": [],
+      "temperature": 0.2,
+      "max_tokens": 450
+    },
+    {
+      "agent_id": "reasoning-02",
+      "name": "Reasoning Beacon",
+      "agent_type": "reasoning",
+      "variant_label": "decision matrix",
+      "system_prompt": "Reason carefully, compare options explicitly, and explain tradeoffs before answering.",
+      "reasoning_mode": "deep",
+      "tools": [],
+      "temperature": 0.25,
+      "max_tokens": 450
+    },
+    {
+      "agent_id": "reasoning-03",
+      "name": "Reasoning Compass",
+      "agent_type": "reasoning",
+      "variant_label": "risk-first",
+      "system_prompt": "Think through the main risks first, then propose the strongest plan with mitigations.",
+      "reasoning_mode": "deep",
+      "tools": [],
+      "temperature": 0.15,
+      "max_tokens": 420
+    },
+    {
+      "agent_id": "reasoning-04",
+      "name": "Reasoning Summit",
+      "agent_type": "reasoning",
+      "variant_label": "structured outline",
+      "system_prompt": "Use a structured outline, enumerate assumptions, and finish with concrete next steps.",
+      "reasoning_mode": "deep",
+      "tools": [],
+      "temperature": 0.2,
+      "max_tokens": 420
+    },
+    {
+      "agent_id": "fast-01",
+      "name": "Fast Flash",
+      "agent_type": "fast",
+      "variant_label": "speed baseline",
+      "system_prompt": "Respond with the shortest useful answer that still solves the request.",
+      "reasoning_mode": "minimal",
+      "tools": [],
+      "temperature": 0.1,
+      "max_tokens": 180
+    },
+    {
+      "agent_id": "fast-02",
+      "name": "Fast Relay",
+      "agent_type": "fast",
+      "variant_label": "bullet output",
+      "system_prompt": "Optimize for speed. Use bullets and skip deep explanation.",
+      "reasoning_mode": "minimal",
+      "tools": [],
+      "temperature": 0.15,
+      "max_tokens": 180
+    },
+    {
+      "agent_id": "fast-03",
+      "name": "Fast Dash",
+      "agent_type": "fast",
+      "variant_label": "confident shortcut",
+      "system_prompt": "Give the highest-confidence answer quickly, then stop.",
+      "reasoning_mode": "minimal",
+      "tools": [],
+      "temperature": 0.1,
+      "max_tokens": 160
+    },
+    {
+      "agent_id": "fast-04",
+      "name": "Fast Spark",
+      "agent_type": "fast",
+      "variant_label": "one-pass",
+      "system_prompt": "Produce a one-pass answer optimized for low latency.",
+      "reasoning_mode": "minimal",
+      "tools": [],
+      "temperature": 0.05,
+      "max_tokens": 160
+    },
+    {
+      "agent_id": "tool-01",
+      "name": "Tool Calculus",
+      "agent_type": "tool",
+      "variant_label": "calculator-first",
+      "system_prompt": "Use the calculator when arithmetic is present, then explain how the result affects the final answer.",
+      "reasoning_mode": "balanced",
+      "tools": [
+        "calculator"
+      ],
+      "temperature": 0.2,
+      "max_tokens": 300
+    },
+    {
+      "agent_id": "tool-02",
+      "name": "Tool Ledger",
+      "agent_type": "tool",
+      "variant_label": "budget helper",
+      "system_prompt": "Look for numbers, use the calculator, and include a compact budget summary.",
+      "reasoning_mode": "balanced",
+      "tools": [
+        "calculator"
+      ],
+      "temperature": 0.25,
+      "max_tokens": 300
+    },
+    {
+      "agent_id": "tool-03",
+      "name": "Tool Metrics",
+      "agent_type": "tool",
+      "variant_label": "numbers and evidence",
+      "system_prompt": "Prefer computed values over guesswork. Mention the tool output directly when available.",
+      "reasoning_mode": "balanced",
+      "tools": [
+        "calculator"
+      ],
+      "temperature": 0.2,
+      "max_tokens": 320
+    },
+    {
+      "agent_id": "tool-04",
+      "name": "Tool Operator",
+      "agent_type": "tool",
+      "variant_label": "calculated recommendation",
+      "system_prompt": "Use calculations to support the answer and keep the narrative concise.",
+      "reasoning_mode": "balanced",
+      "tools": [
+        "calculator"
+      ],
+      "temperature": 0.15,
+      "max_tokens": 280
+    },
+    {
+      "agent_id": "rag-01",
+      "name": "RAG Archive",
+      "agent_type": "rag",
+      "variant_label": "context grounded",
+      "system_prompt": "Ground the answer in retrieved context. If context is weak, say so clearly.",
+      "reasoning_mode": "balanced",
+      "tools": [],
+      "temperature": 0.2,
+      "max_tokens": 360
+    },
+    {
+      "agent_id": "rag-02",
+      "name": "RAG Compass",
+      "agent_type": "rag",
+      "variant_label": "context then answer",
+      "system_prompt": "Summarize retrieved evidence first, then answer using only supported claims.",
+      "reasoning_mode": "balanced",
+      "tools": [],
+      "temperature": 0.15,
+      "max_tokens": 360
+    },
+    {
+      "agent_id": "rag-03",
+      "name": "RAG Lens",
+      "agent_type": "rag",
+      "variant_label": "evidence led",
+      "system_prompt": "Prioritize grounded evidence and attach lightweight citations to major claims.",
+      "reasoning_mode": "balanced",
+      "tools": [],
+      "temperature": 0.2,
+      "max_tokens": 360
+    },
+    {
+      "agent_id": "rag-04",
+      "name": "RAG Vault",
+      "agent_type": "rag",
+      "variant_label": "retrieval summary",
+      "system_prompt": "Use retrieved context as a first-class input and highlight any evidence gaps.",
+      "reasoning_mode": "balanced",
+      "tools": [],
+      "temperature": 0.18,
+      "max_tokens": 360
+    },
+    {
+      "agent_id": "bad-01",
+      "name": "Bad Chaos",
+      "agent_type": "bad",
+      "variant_label": "overconfident",
+      "system_prompt": "Answer quickly and confidently, even if details are uncertain.",
+      "reasoning_mode": "minimal",
+      "tools": [],
+      "temperature": 0.95,
+      "max_tokens": 220
+    },
+    {
+      "agent_id": "bad-02",
+      "name": "Bad Mirage",
+      "agent_type": "bad",
+      "variant_label": "hallucination-prone",
+      "system_prompt": "Prefer vivid, creative details and do not spend time checking them.",
+      "reasoning_mode": "minimal",
+      "tools": [],
+      "temperature": 1.0,
+      "max_tokens": 240
+    },
+    {
+      "agent_id": "bad-03",
+      "name": "Bad Static",
+      "agent_type": "bad",
+      "variant_label": "noisy answer",
+      "system_prompt": "Mix plausible and speculative ideas freely and keep moving fast.",
+      "reasoning_mode": "minimal",
+      "tools": [],
+      "temperature": 0.95,
+      "max_tokens": 240
+    },
+    {
+      "agent_id": "bad-04",
+      "name": "Bad Drift",
+      "agent_type": "bad",
+      "variant_label": "off-topic risk",
+      "system_prompt": "Respond in a way that may drift off-topic and overstate certainty.",
+      "reasoning_mode": "minimal",
+      "tools": [],
+      "temperature": 0.9,
+      "max_tokens": 220
+    },
+    {
+      "agent_id": "expert-01",
+      "name": "Environment Gardening Expert",
+      "agent_type": "expert",
+      "variant_label": "gardening and sustainability guide",
+      "system_prompt": "Answer as an environment and gardening expert. Give practical, beginner-friendly guidance on soil, plants, watering, environmental science basics, sustainability, climate, and ecosystem questions. Prioritize clear steps, sensible tradeoffs, and environmentally responsible advice.",
+      "reasoning_mode": "balanced",
+      "tools": [],
+      "temperature": 0.2,
+      "max_tokens": 420
+    }
+  ]
+}
