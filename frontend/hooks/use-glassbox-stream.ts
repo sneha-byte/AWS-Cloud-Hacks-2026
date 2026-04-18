@@ -7,7 +7,7 @@
 
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { Trace, CriticalAlert, Postmortem, WsMessage } from "@/lib/types"
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? ""
@@ -55,13 +55,9 @@ export function useGlassboxStream(sessionId: string | null): GlassboxStream {
       try {
         const msg: WsMessage = JSON.parse(ev.data)
         switch (msg.type) {
-          case "trace": {
-            const next = msg.payload
-            setTraces((prev) =>
-              prev.some((p) => p.trace_id === next.trace_id) ? prev : [...prev, next],
-            )
+          case "trace":
+            setTraces((prev) => [...prev, msg.payload])
             break
-          }
           case "critical_alert":
             setAlerts((prev) => [...prev, msg.payload])
             break

@@ -1,15 +1,12 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Wifi, WifiOff } from "lucide-react"
 import { useAppState } from "@/lib/app-state"
-import { stadiums } from "@/lib/stadiums"
-import {
-  type ChaosMode,
-  chaosLabel,
-  previewTelemetry,
-  runSimulationStep,
-} from "@/lib/simulation"
+import { stadiums, scenarios, type Scenario } from "@/lib/stadiums"
+import { startSession, stopSession, formatTraceAsLogLines } from "@/lib/api"
+import { useGlassboxStream } from "@/hooks/use-glassbox-stream"
+import type { Trace } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -24,66 +21,103 @@ import { LiveTrace } from "./live-trace"
 import { LumenRail } from "./lumen-rail"
 import { cn } from "@/lib/utils"
 
-const chaosOptions: { value: ChaosMode; label: string }[] = [
-  { value: "normal", label: "Normal operations" },
-  { value: "heatwave", label: "Heatwave scenario" },
-  { value: "crowd-surge", label: "Crowd surge" },
-  { value: "power-outage", label: "Power outage" },
-  { value: "weather-alert", label: "Weather alert" },
-]
-
 const INITIAL_TRACE = [
   "[system] GlassBox v3 · Lumen spectrum rail online",
-  "[system] Tune chaos + stadium, then run simulation step to stream agents.",
+  "[system] Select a stadium and scenario, then start session to stream live agent traces.",
 ]
 
 export function Dashboard() {
-  const selectedStadium = useAppState((state) => state.selectedStadium)
-  const goBackToGlobe = useAppState((state) => state.goBackToGlobe)
-  const setSelectedStadium = useAppState((state) => state.setSelectedStadium)
+  const selectedStadium = useAppState((s) => s.selectedStadium)
+  const selectedScenario = useAppState((s) => s.selectedScenario)
+  const sessionId = useAppState((s) => s.sessionId)
+  const goBackToGlobe = useAppState((s) => s.goBackToGlobe)
+  const setSelectedStadium = useAppState((s) => s.setSelectedStadium)
+  const setSelectedScenario = useAppState((s) => s.setSelectedScenario)
+  const setSessionId = useAppState((s) => s.setSessionId)
 
-  const [chaosMode, setChaosMode] = useState<ChaosMode>("normal")
-  const [step, setStep] = useState(0)
-  const [trace, setTrace] = useState<string[]>(INITIAL_TRACE)
-  const [safety, setSafety] = useState(() => previewTelemetry("normal").safety)
-  const [strain, setStrain] = useState(() => previewTelemetry("normal").strain)
-  const [isRunning, setIsRunning] = useState(false)
+  const [traceLines, setTraceLines] = useState<string[]>(INITIAL_TRACE)
+  const [allTraces, setAllTraces] = useState<Trace[]>([])
+  const [isStarting, setIsStarting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  // WebSocket stream (connects when sessionId is set and WS_URL is configured)
+  const { traces: wsTraces, alerts, postmortems, connected } = useGlassboxStream(sessionId)
+
+  // Append new WebSocket traces to log
   useEffect(() => {
-    const p = previewTelemetry(chaosMode)
-    setSafety(p.safety)
-    setStrain(p.strain)
-  }, [chaosMode])
+    if (wsTraces.length === 0) return
+    const latest = wsTraces[wsTraces.length - 1]
+    // Only process if we haven't seen this trace yet
+    if (allTraces.length < wsTraces.length) {
+      setAllTraces(wsTraces)
+      const newLines = formatTraceAsLogLines(latest)
+      setTraceLines((prev) => [...prev, ...newLines])
+    }
+  }, [wsTraces, allTraces.length])
 
-  useEffect(() => {
-    setStep(0)
-    setTrace(INITIAL_TRACE)
-  }, [selectedStadium?.id])
+  // Derived metrics from latest trace
+  const latestTrace = allTraces[allTraces.length - 1] ?? null
+  const safety = latestTrace?.judge_score ?? 7.4
+  const strain = latestTrace
+    ? Math.min(10, Math.max(0, Math.abs(latestTrace.impact.kwh_delta) / 20))
+    : 3.2
 
   const status = useMemo<"Ready" | "Live" | "Degraded">(() => {
-    if (step === 0) return "Ready"
-    if (safety < 4) return "Degraded"
+    if (!sessionId) return "Ready"
+    if (latestTrace?.severity === "critical") return "Degraded"
+    if (latestTrace?.guardrail_blocked) return "Degraded"
     return "Live"
-  }, [safety, step])
+  }, [sessionId, latestTrace])
 
   const handleStadiumChange = (stadiumId: string) => {
     const stadium = stadiums.find((s) => s.id === stadiumId)
-    if (stadium) setSelectedStadium(stadium)
+    if (stadium) {
+      setSelectedStadium(stadium)
+      setSelectedScenario(stadium.signatureScenario)
+    }
   }
 
-  const runStep = useCallback(() => {
-    if (!selectedStadium || isRunning) return
-    setIsRunning(true)
-    const next = step + 1
-    const { safety: s, strain: r, lines } = runSimulationStep(next, chaosMode, selectedStadium)
-    setStep(next)
-    setSafety(s)
-    setStrain(r)
-    setTrace((prev) => [...prev, ...lines])
-    window.setTimeout(() => setIsRunning(false), 480)
-  }, [chaosMode, isRunning, selectedStadium, step])
+  const handleStart = useCallback(async () => {
+    if (!selectedStadium || isStarting) return
+    setIsStarting(true)
+    setError(null)
+    try {
+      const { session_id } = await startSession(selectedStadium.id, selectedScenario)
+      setSessionId(session_id)
+      setTraceLines((prev) => [
+        ...prev,
+        `[system] Session started: ${session_id}`,
+        `[system] Stadium: ${selectedStadium.name} · Scenario: ${selectedScenario}`,
+        `[system] Streaming traces every 5s...`,
+      ])
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error"
+      setError(msg)
+      setTraceLines((prev) => [...prev, `[error] Failed to start session: ${msg}`])
+    } finally {
+      setIsStarting(false)
+    }
+  }, [selectedStadium, selectedScenario, isStarting, setSessionId])
 
-  const activeAgent = step > 0 ? (step - 1) % 4 : -1
+  const handleStop = useCallback(async () => {
+    if (!sessionId) return
+    try {
+      await stopSession(sessionId)
+      setTraceLines((prev) => [...prev, `[system] Session ${sessionId} stopped.`])
+    } catch {
+      // Session may already be stopped
+    }
+    setSessionId(null)
+  }, [sessionId, setSessionId])
+
+  // Determine active pipeline agent from latest trace
+  const activeAgent = latestTrace
+    ? latestTrace.agent === "manager"
+      ? 1
+      : latestTrace.agent === "judge"
+        ? 2
+        : -1
+    : -1
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background px-4 py-6 sm:px-8">
@@ -98,7 +132,7 @@ export function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={goBackToGlobe}
+              onClick={() => { handleStop(); goBackToGlobe() }}
               className="mt-0.5 shrink-0 text-muted-foreground hover:text-foreground"
               aria-label="Back to globe"
             >
@@ -109,7 +143,7 @@ export function Dashboard() {
                 GlassBox AI v3: Stadium Audit
               </h1>
               <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                Observability canvas in the Lumen palette — simulator → manager → judge → GlasseX, with live safety / strain telemetry.
+                Live agent observability — simulator → manager → judge → audit, with real-time safety telemetry.
               </p>
             </div>
           </div>
@@ -117,7 +151,18 @@ export function Dashboard() {
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <StatusBadge label="STATUS" value={status} tone={status === "Degraded" ? "bad" : status === "Live" ? "live" : "ready"} />
             <StatusBadge label="STADIUM" value={selectedStadium?.name ?? "—"} tone="neutral" />
-            <StatusBadge label="AUDIT" value="v3.1.2-beta" tone="neutral" />
+            {sessionId && (
+              <div className="flex items-center gap-1 rounded-full border border-border/80 bg-card/60 px-3 py-1.5 backdrop-blur-sm">
+                {connected ? (
+                  <Wifi className="h-3 w-3 text-amethyst" />
+                ) : (
+                  <WifiOff className="h-3 w-3 text-muted-foreground" />
+                )}
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {connected ? "LIVE" : "POLLING"}
+                </span>
+              </div>
+            )}
           </div>
         </header>
 
@@ -125,28 +170,58 @@ export function Dashboard() {
           <LumenRail health={safety / 10} />
         </div>
 
+        {/* Guardrail blocked banner */}
+        {latestTrace?.guardrail_blocked && (
+          <div className="mb-4 rounded-lg border border-purple-500/40 bg-purple-500/10 px-4 py-3 text-sm text-purple-300">
+            ⚠️ Action blocked by Guardrails before Judge evaluation — safety layer intervened.
+          </div>
+        )}
+
+        {/* Critical alert banner */}
+        {latestTrace?.severity === "critical" && (
+          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            🚨 CRITICAL — {latestTrace.judge_reasoning}
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            {error}
+          </div>
+        )}
+
         <div className="space-y-6 rounded-2xl border border-border/80 bg-card/30 p-4 shadow-[0_24px_80px_oklch(0_0_0/0.35)] backdrop-blur-md sm:p-6">
           <div className="rounded-xl border border-border/60 bg-background/40">
             <WorkflowPipeline activeIndex={activeAgent} />
           </div>
 
           <div className="mx-auto max-w-2xl">
-            <SafetyQuadrant safety={safety} strain={strain} step={step} />
+            <SafetyQuadrant safety={safety} strain={strain} step={allTraces.length} />
           </div>
 
-          <LiveTrace lines={trace} step={step} />
+          {/* Facility state from latest observation */}
+          {latestTrace && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <MetricTile label="OUTSIDE TEMP" value={`${latestTrace.observation.outside_temp_f}°F`} />
+              <MetricTile label="INSIDE TEMP" value={`${latestTrace.observation.inside_temp_f}°F`} />
+              <MetricTile label="ATTENDANCE" value={latestTrace.observation.attendance.toLocaleString()} />
+              <MetricTile label="GRID PRICE" value={`$${latestTrace.observation.grid_price_usd_mwh}/MWh`} />
+            </div>
+          )}
+
+          <LiveTrace lines={traceLines} step={allTraces.length} />
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-2 block text-[10px] font-semibold tracking-[0.22em] text-muted-foreground">STADIUM</label>
-              <Select value={selectedStadium?.id ?? ""} onValueChange={handleStadiumChange}>
+              <Select value={selectedStadium?.id ?? ""} onValueChange={handleStadiumChange} disabled={!!sessionId}>
                 <SelectTrigger className="h-11 border-border bg-card/80">
                   <SelectValue placeholder="Select stadium" />
                 </SelectTrigger>
                 <SelectContent>
                   {stadiums.map((stadium) => (
                     <SelectItem key={stadium.id} value={stadium.id}>
-                      {stadium.name}
+                      {stadium.name} — {stadium.city}, {stadium.country}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -154,24 +229,15 @@ export function Dashboard() {
             </div>
 
             <div>
-              <label className="mb-2 block text-[10px] font-semibold tracking-[0.22em] text-muted-foreground">CHAOS SWITCH</label>
-              <Select
-                value={chaosMode}
-                onValueChange={(v) => {
-                  setChaosMode(v as ChaosMode)
-                  setTrace((prev) => [
-                    ...prev,
-                    `[system] chaos → ${chaosLabel(v as ChaosMode)} · preview telemetry refreshed`,
-                  ])
-                }}
-              >
+              <label className="mb-2 block text-[10px] font-semibold tracking-[0.22em] text-muted-foreground">SCENARIO</label>
+              <Select value={selectedScenario} onValueChange={(v) => setSelectedScenario(v as Scenario)} disabled={!!sessionId}>
                 <SelectTrigger className="h-11 border-border bg-card/80">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {chaosOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                  {scenarios.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -179,20 +245,30 @@ export function Dashboard() {
             </div>
           </div>
 
-          <Button
-            className="h-12 w-full border border-amethyst/30 bg-gradient-to-r from-amethyst/15 to-lavender/10 font-medium tracking-wide text-foreground shadow-sm transition hover:border-lavender/40 hover:shadow-[0_0_28px_oklch(0.55_0.12_285/0.25)]"
-            onClick={runStep}
-            disabled={!selectedStadium || isRunning}
-          >
-            {isRunning ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-lavender border-t-transparent" />
-                Running step…
-              </span>
-            ) : (
-              "Run simulation step"
-            )}
-          </Button>
+          {!sessionId ? (
+            <Button
+              className="h-12 w-full border border-amethyst/30 bg-gradient-to-r from-amethyst/15 to-lavender/10 font-medium tracking-wide text-foreground shadow-sm transition hover:border-lavender/40 hover:shadow-[0_0_28px_oklch(0.55_0.12_285/0.25)]"
+              onClick={handleStart}
+              disabled={!selectedStadium || isStarting}
+            >
+              {isStarting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-lavender border-t-transparent" />
+                  Starting session…
+                </span>
+              ) : (
+                "Start simulation session"
+              )}
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              className="h-12 w-full font-medium tracking-wide"
+              onClick={handleStop}
+            >
+              Stop session
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -222,6 +298,15 @@ function StatusBadge({
       >
         {value}
       </span>
+    </div>
+  )
+}
+
+function MetricTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/50 px-3 py-2.5 text-center">
+      <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground">{label}</div>
+      <div className="mt-1 font-mono text-sm text-foreground">{value}</div>
     </div>
   )
 }
