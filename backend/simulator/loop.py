@@ -34,12 +34,9 @@ logger = logging.getLogger(__name__)
 # Active sessions — keyed by session_id
 _sessions: dict[str, asyncio.Task] = {}
 
-<<<<<<< HEAD
 # Trace buffer — stores recent traces per session for polling
 _trace_buffer: dict[str, list[dict]] = {}
 
-=======
->>>>>>> f6072ba (feat: scaffold backend/simulator package (Role 2))
 
 # ---------------------------------------------------------------------------
 # State helpers
@@ -196,10 +193,7 @@ async def run_session(
                 )
 
                 # 7. Build and POST trace
-<<<<<<< HEAD
                 trace_id = f"trc_{ulid.new().str}"
-=======
->>>>>>> f6072ba (feat: scaffold backend/simulator package (Role 2))
                 trace_body = TracePostBody(
                     session_id=session_id,
                     stadium_id=stadium.stadium_id,
@@ -215,7 +209,6 @@ async def run_session(
                     guardrail_intervention=guardrail_intervention,
                 )
 
-<<<<<<< HEAD
                 # 7a. Store in local buffer for polling
                 trace_dict = trace_body.model_dump()
                 trace_dict["trace_id"] = trace_id
@@ -224,13 +217,10 @@ async def run_session(
                 _trace_buffer[session_id].append(trace_dict)
 
                 # 7b. POST to platform (may fail if platform not deployed — that's OK)
-=======
->>>>>>> f6072ba (feat: scaffold backend/simulator package (Role 2))
                 headers = {"Content-Type": "application/json"}
                 if api_key:
                     headers["x-api-key"] = api_key
 
-<<<<<<< HEAD
                 try:
                     resp = await http.post(
                         trace_endpoint,
@@ -250,7 +240,6 @@ async def run_session(
                         step,
                         manager_output.action.tool,
                     )
-=======
                 resp = await http.post(
                     trace_endpoint,
                     content=trace_body.model_dump_json(),
@@ -262,7 +251,6 @@ async def run_session(
                     manager_output.action.tool,
                     resp.status_code,
                 )
->>>>>>> f6072ba (feat: scaffold backend/simulator package (Role 2))
 
             except asyncio.CancelledError:
                 logger.info("Session %s cancelled at step %d", session_id, step)
@@ -296,15 +284,12 @@ def stop_session(session_id: str) -> bool:
     return False
 
 
-<<<<<<< HEAD
 def get_session_traces(session_id: str, after: int = 0) -> list[dict]:
     """Return traces for a session, optionally after a given index (for polling)."""
     traces = _trace_buffer.get(session_id, [])
     return traces[after:]
 
 
-=======
->>>>>>> f6072ba (feat: scaffold backend/simulator package (Role 2))
 def active_sessions() -> list[str]:
     """Return IDs of currently running sessions."""
     return [sid for sid, t in _sessions.items() if not t.done()]
