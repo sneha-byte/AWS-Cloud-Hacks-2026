@@ -36,10 +36,15 @@ function lineColor(line: TraceLine): string {
 }
 
 export function LiveTrace({ lines, step }: LiveTraceProps) {
-  const endRef = useRef<HTMLDivElement | null>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
 
+  // Scroll only the terminal pane — never scrollIntoView (that pulls the whole page).
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+    const el = scrollRef.current
+    if (!el) return
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight
+    })
   }, [lines])
 
   return (
@@ -50,6 +55,7 @@ export function LiveTrace({ lines, step }: LiveTraceProps) {
       </div>
 
       <div
+        ref={scrollRef}
         className="terminal-scrollbar h-52 overflow-y-auto p-4 font-mono text-[11px] leading-relaxed sm:text-xs"
         aria-live="polite"
         aria-relevant="additions"
@@ -71,7 +77,6 @@ export function LiveTrace({ lines, step }: LiveTraceProps) {
             {line.text}
           </div>
         ))}
-        <div ref={endRef} className="h-px w-full" aria-hidden />
         <div className="mt-2 flex items-center gap-1">
           <span className="h-4 w-1.5 animate-pulse bg-lavender/80" />
         </div>
