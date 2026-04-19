@@ -26,7 +26,7 @@ import { CriticalAlertToast } from "./critical-alert-toast"
 import { cn } from "@/lib/utils"
 
 const INITIAL_TRACE: TraceLine[] = [
-  { text: "[system] GlassBox v3 · Lumen spectrum rail online" },
+  { text: "[system] GlassBox AI · Lumen spectrum rail online" },
   { text: "[system] Select a stadium and scenario, then start session to stream live agent traces." },
 ]
 
