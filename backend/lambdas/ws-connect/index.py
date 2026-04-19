@@ -8,7 +8,17 @@ import os
 from datetime import datetime, timedelta
 
 dynamodb = boto3.resource("dynamodb", region_name=os.environ.get("AWS_REGION", "us-west-2"))
-table = dynamodb.Table(os.environ["WS_CONNECTIONS_TABLE"])
+
+# Lazy initialization for testability
+_table = None
+
+
+def get_table():
+    """Get the DynamoDB table (lazy initialization for testing)."""
+    global _table
+    if _table is None:
+        _table = dynamodb.Table(os.environ["WS_CONNECTIONS_TABLE"])
+    return _table
 
 
 def lambda_handler(event, context):
@@ -37,6 +47,7 @@ def lambda_handler(event, context):
         ttl = int((datetime.utcnow() + timedelta(hours=24)).timestamp())
         
         # Write to DynamoDB
+        table = get_table()
         table.put_item(
             Item={
                 "connection_id": connection_id,
