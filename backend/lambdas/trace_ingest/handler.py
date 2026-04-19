@@ -324,7 +324,7 @@ def traceIngestHandler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     full_trace["regulations_cited"] = verdict["regulations_cited"]
     full_trace["severity"] = verdict["severity"]
 
-    table_name = _env("TRACES_TABLE_NAME", "glassbox-traces")
+    table_name = _env("TRACES_TABLE_NAME") or _env("TRACES_TABLE") or "glassbox-traces"
     dynamodb = boto3.resource("dynamodb", region_name=_env("AWS_REGION", "us-west-2"))
     table = dynamodb.Table(table_name)
 
@@ -340,6 +340,34 @@ def traceIngestHandler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             502,
             {"error": "Failed to persist trace", "detail": str(e)},
         )
+
+    # Critical path → Step Functions (Polly + postmortem in parallel), if configured
+    if full_trace.get("severity") == "critical":
+        sm_arn = _env("CRITICAL_STATE_MACHINE_ARN")
+        if sm_arn:
+            try:
+                sfn = boto3.client("stepfunctions", region_name=_env("AWS_REGION", "us-west-2"))
+                safe_name = f"gb-{trace_id}-{uuid.uuid4().hex[:8]}"
+                safe_name = "".join(c if c.isalnum() or c in "-_" else "-" for c in safe_name)[:80]
+                sfn.start_execution(
+                    stateMachineArn=sm_arn,
+                    name=safe_name,
+                    input=json.dumps(
+                        {
+                            "trace_id": trace_id,
+                            "session_id": full_trace["session_id"],
+                            "stadium_id": full_trace["stadium_id"],
+                            "observation": full_trace["observation"],
+                            "action": full_trace["action"],
+                            "judge_reasoning": full_trace.get("judge_reasoning", ""),
+                            "regulations_cited": full_trace.get("regulations_cited", []),
+                            "severity": full_trace.get("severity"),
+                        },
+                        default=str,
+                    ),
+                )
+            except Exception:
+                logger.exception("Step Functions start_execution failed for critical trace")
 
     logger.info("Ingested trace_id=%s session=%s step=%s", trace_id, full_trace["session_id"], full_trace["step"])
 

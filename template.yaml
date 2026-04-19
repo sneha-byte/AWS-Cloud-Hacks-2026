@@ -1,0 +1,455 @@
+# GlassBox — HTTP POST /trace + WebSocket + DynamoDB streams + Step Functions
+# Judge: Bedrock inside trace_ingest (not a separate Lambda).
+# Lambdas: trace_ingest, trace_broadcaster, ws_connect, ws_disconnect, polly_alert, postmortem_gen
+
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: GlassBox — HttpApi /trace, WebSocket prod stage, traces + connections, stream broadcaster, critical SFN
+
+Parameters:
+  TraceIngestApiKey:
+    Type: String
+    Default: test-secret
+    Description: x-api-key header (simulator GLASSBOX_API_KEY)
+    NoEcho: true
+  SkipJudge:
+    Type: String
+    Default: "0"
+    AllowedValues: ["0", "1"]
+    Description: 1 = skip Bedrock Judge (placeholder). 0 = real Judge (needs model access in account).
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 120
+    MemorySize: 512
+    Architectures:
+      - x86_64
+
+Resources:
+  GlassBoxHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - "*"
+        AllowMethods:
+          - POST
+          - OPTIONS
+        MaxAge: 86400
+
+  TracesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: glassbox-traces
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: trace_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: trace_id
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+
+  WsConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: glassbox-ws-connections
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: connection_id
+          AttributeType: S
+        - AttributeName: session_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: connection_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: session-id-index
+          KeySchema:
+            - AttributeName: session_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  AudioBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ["*"]
+            AllowedMethods: [GET, HEAD]
+            AllowedOrigins: ["*"]
+
+  AudioBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AudioBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${AudioBucket.Arn}/*"
+
+  WebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-ws"
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  WsConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-ws-connect"
+      CodeUri: backend/lambdas/ws-connect/
+      Handler: index.lambda_handler
+      Environment:
+        Variables:
+          WS_CONNECTIONS_TABLE: !Ref WsConnectionsTable
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+            Resource: !GetAtt WsConnectionsTable.Arn
+
+  WsDisconnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-ws-disconnect"
+      CodeUri: backend/lambdas/ws-disconnect/
+      Handler: index.lambda_handler
+      Environment:
+        Variables:
+          WS_CONNECTIONS_TABLE: !Ref WsConnectionsTable
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:DeleteItem
+            Resource: !GetAtt WsConnectionsTable.Arn
+
+  WsConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WsConnectFunction.Arn}/invocations"
+
+  WsConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebSocketApi
+      RouteKey: $connect
+      AuthorizationType: NONE
+      Target: !Join
+        - /
+        - - integrations
+          - !GetAtt WsConnectIntegration.IntegrationId
+
+  WsDisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WsDisconnectFunction.Arn}/invocations"
+
+  WsDisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebSocketApi
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      Target: !Join
+        - /
+        - - integrations
+          - !GetAtt WsDisconnectIntegration.IntegrationId
+
+  WebSocketDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - WsConnectRoute
+      - WsDisconnectRoute
+    Properties:
+      ApiId: !Ref WebSocketApi
+
+  WebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref WebSocketApi
+      DeploymentId: !Ref WebSocketDeployment
+      StageName: prod
+      AutoDeploy: false
+
+  PollyAlertFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-polly-alert"
+      CodeUri: backend/lambdas/polly-alert/
+      Handler: index.lambda_handler
+      Environment:
+        Variables:
+          TRACES_TABLE: !Ref TracesTable
+          WS_CONNECTIONS_TABLE: !Ref WsConnectionsTable
+          WS_ENDPOINT: !Sub "https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+          POLLY_AUDIO_BUCKET: !Ref AudioBucket
+          POLLY_VOICE_ID: Matthew
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - polly:SynthesizeSpeech
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource: !Sub "${AudioBucket.Arn}/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:UpdateItem
+            Resource: !GetAtt TracesTable.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:Query
+              - dynamodb:DeleteItem
+            Resource:
+              - !GetAtt WsConnectionsTable.Arn
+              - !Sub "${WsConnectionsTable.Arn}/index/*"
+        - Statement:
+            Effect: Allow
+            Action: execute-api:ManageConnections
+            Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/prod/POST/@connections/*"
+        - Statement:
+            Effect: Allow
+            Action: secretsmanager:GetSecretValue
+            Resource: "*"
+
+  PostmortemGenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-postmortem-gen"
+      CodeUri: backend/lambdas/postmortem-gen/
+      Handler: index.lambda_handler
+      Environment:
+        Variables:
+          TRACES_TABLE: !Ref TracesTable
+          WS_CONNECTIONS_TABLE: !Ref WsConnectionsTable
+          WS_ENDPOINT: !Sub "https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+          BEDROCK_MODEL_ID: anthropic.claude-sonnet-4-20250514-v1:0
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action: bedrock:InvokeModel
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:UpdateItem
+            Resource: !GetAtt TracesTable.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:Query
+              - dynamodb:DeleteItem
+            Resource:
+              - !GetAtt WsConnectionsTable.Arn
+              - !Sub "${WsConnectionsTable.Arn}/index/*"
+        - Statement:
+            Effect: Allow
+            Action: execute-api:ManageConnections
+            Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/prod/POST/@connections/*"
+
+  CriticalStateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeBranches
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource:
+                  - !GetAtt PollyAlertFunction.Arn
+                  - !GetAtt PostmortemGenFunction.Arn
+
+  CriticalStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub "${AWS::StackName}-critical"
+      RoleArn: !GetAtt CriticalStateMachineRole.Arn
+      DefinitionString: !Sub
+        - |
+          {
+            "Comment": "GlassBox critical — Polly + postmortem in parallel",
+            "StartAt": "Parallel",
+            "States": {
+              "Parallel": {
+                "Type": "Parallel",
+                "Branches": [
+                  {
+                    "StartAt": "Polly",
+                    "States": {
+                      "Polly": {
+                        "Type": "Task",
+                        "Resource": "${PollyArn}",
+                        "End": true
+                      }
+                    }
+                  },
+                  {
+                    "StartAt": "Postmortem",
+                    "States": {
+                      "Postmortem": {
+                        "Type": "Task",
+                        "Resource": "${PostArn}",
+                        "End": true
+                      }
+                    }
+                  }
+                ],
+                "End": true
+              }
+            }
+          }
+        - PollyArn: !GetAtt PollyAlertFunction.Arn
+          PostArn: !GetAtt PostmortemGenFunction.Arn
+
+  TraceIngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-trace-ingest"
+      CodeUri: backend/lambdas/trace_ingest/
+      Handler: handler.traceIngestHandler
+      Environment:
+        Variables:
+          TRACES_TABLE: !Ref TracesTable
+          TRACE_INGEST_API_KEY: !Ref TraceIngestApiKey
+          SKIP_JUDGE: !Ref SkipJudge
+          CRITICAL_STATE_MACHINE_ARN: !GetAtt CriticalStateMachine.Arn
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+            Resource: !GetAtt TracesTable.Arn
+        - Statement:
+            Effect: Allow
+            Action: bedrock:InvokeModel
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action: states:StartExecution
+            Resource: !GetAtt CriticalStateMachine.Arn
+      Events:
+        TracePost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref GlassBoxHttpApi
+            Path: /trace
+            Method: POST
+
+  TraceBroadcasterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-trace-broadcaster"
+      CodeUri: backend/lambdas/trace-broadcaster/
+      Handler: index.lambda_handler
+      Environment:
+        Variables:
+          WS_CONNECTIONS_TABLE: !Ref WsConnectionsTable
+          WS_ENDPOINT: !Sub "https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:DescribeStream
+              - dynamodb:ListStreams
+            Resource: !GetAtt TracesTable.StreamArn
+        - Statement:
+            Effect: Allow
+            Action:
+              - dynamodb:Query
+              - dynamodb:DeleteItem
+            Resource:
+              - !GetAtt WsConnectionsTable.Arn
+              - !Sub "${WsConnectionsTable.Arn}/index/*"
+        - Statement:
+            Effect: Allow
+            Action: execute-api:ManageConnections
+            Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/prod/POST/@connections/*"
+
+  TraceBroadcasterMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    DependsOn:
+      - TraceBroadcasterFunction
+      - TracesTable
+    Properties:
+      BatchSize: 10
+      Enabled: true
+      EventSourceArn: !GetAtt TracesTable.StreamArn
+      FunctionName: !Ref TraceBroadcasterFunction
+      StartingPosition: LATEST
+
+  WsConnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WsConnectFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*/@connections/*"
+
+  WsDisconnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WsDisconnectFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*/@connections/*"
+
+Outputs:
+  HttpApiBaseUrl:
+    Description: GLASSBOX_API_URL (no trailing slash)
+    Value: !GetAtt GlassBoxHttpApi.ApiEndpoint
+  PostTraceUrl:
+    Value: !Sub "${GlassBoxHttpApi.ApiEndpoint}/trace"
+  WebSocketUrl:
+    Description: NEXT_PUBLIC_WS_URL base — use wss URL + ?session_id=
+    Value: !Sub "wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  WebSocketManageEndpoint:
+    Description: HTTPS management endpoint (WS_ENDPOINT in Lambdas)
+    Value: !Sub "https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  TracesTableName:
+    Value: !Ref TracesTable
+  WsConnectionsTableName:
+    Value: !Ref WsConnectionsTable
+  CriticalStateMachineArn:
+    Value: !GetAtt CriticalStateMachine.Arn
+  AudioBucketName:
+    Value: !Ref AudioBucket

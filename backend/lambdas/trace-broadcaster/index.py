@@ -93,7 +93,20 @@ def deserialize_dynamo(dynamo_item):
         elif "M" in val:
             result[key] = deserialize_dynamo(val["M"])
         elif "L" in val:
-            result[key] = [deserialize_dynamo({"v": item}) if isinstance(item, dict) else item for item in val["L"]]
+            out: list = []
+            for item in val["L"]:
+                if isinstance(item, dict) and "M" in item:
+                    out.append(deserialize_dynamo(item["M"]))
+                elif isinstance(item, dict) and "S" in item:
+                    out.append(item["S"])
+                elif isinstance(item, dict) and "N" in item:
+                    n = item["N"]
+                    out.append(int(n) if "." not in n else float(n))
+                elif isinstance(item, dict) and "BOOL" in item:
+                    out.append(item["BOOL"])
+                else:
+                    out.append(item)
+            result[key] = out
         elif "NULL" in val:
             result[key] = None
         else:

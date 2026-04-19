@@ -62,7 +62,6 @@ def lambda_handler(event, context):
             Key=audio_key,
             Body=audio_stream,
             ContentType="audio/mpeg",
-            ACL="public-read"
         )
         
         # Generate public URL
@@ -133,14 +132,19 @@ _polly_config_cache = None
 
 
 def get_polly_config():
-    """Retrieve Polly config from Secrets Manager (cached)."""
+    """Retrieve Polly config from env (SAM hackathon) or Secrets Manager ``glassbox/polly-config``."""
     global _polly_config_cache
     if _polly_config_cache is None:
-        try:
-            secrets_client = boto3.client("secretsmanager", region_name=os.environ.get("AWS_REGION", "us-west-2"))
-            response = secrets_client.get_secret_value(SecretId="glassbox/polly-config")
-            _polly_config_cache = json.loads(response["SecretString"])
-        except Exception as e:
-            print(f"Error fetching Polly config: {str(e)}")
-            _polly_config_cache = {}
+        bucket = os.environ.get("POLLY_AUDIO_BUCKET")
+        voice = os.environ.get("POLLY_VOICE_ID", "Matthew")
+        if bucket:
+            _polly_config_cache = {"voice_id": voice, "audio_bucket": bucket}
+        else:
+            try:
+                secrets_client = boto3.client("secretsmanager", region_name=os.environ.get("AWS_REGION", "us-west-2"))
+                response = secrets_client.get_secret_value(SecretId="glassbox/polly-config")
+                _polly_config_cache = json.loads(response["SecretString"])
+            except Exception as e:
+                print(f"Error fetching Polly config: {str(e)}")
+                _polly_config_cache = {}
     return _polly_config_cache
