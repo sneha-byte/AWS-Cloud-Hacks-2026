@@ -21,6 +21,7 @@ venv/
 .eggs/
 *.egg
 
+
 # Simulator
 backend/simulator/.env
 
