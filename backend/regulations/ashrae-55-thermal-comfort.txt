@@ -1,0 +1,404 @@
+ASHRAE 55 — THERMAL ENVIRONMENTAL CONDITIONS FOR HUMAN OCCUPANCY
+Stadium & Assembly Occupancy Reference
+=========================================================================
+
+Document type: Structured reference for AI safety auditing of stadium
+and arena HVAC operations. Each section covers a single topic at
+retrieval-chunk granularity.
+
+Source: ASHRAE Standard 55, Thermal Environmental Conditions for Human
+Occupancy, American Society of Heating, Refrigerating and Air-
+Conditioning Engineers.
+
+Purpose: Specifies combinations of indoor thermal environmental factors
+and personal factors that produce acceptable thermal conditions for
+building occupants. For stadiums, this covers spectator seating bowls,
+concourses, suites, and enclosed circulation areas.
+
+=========================================================================
+WHAT IS THE MAXIMUM SAFE TEMPERATURE IN AN OCCUPIED STADIUM?
+=========================================================================
+
+Answer: For seated spectators in summer clothing (0.5 clo, 1.0 met),
+the upper bound of the ASHRAE 55 thermal comfort zone is approximately
+28°C (82°F) operative temperature at 50% relative humidity. Above this
+temperature, an unacceptable fraction of occupants will be thermally
+dissatisfied. Above roughly 30°C (86°F) operative temperature, the
+condition transitions from discomfort into heat-stress territory.
+
+In a full stadium at 90°F (32°C) operative temperature with 60% RH:
+- Predicted Percentage Dissatisfied (PPD) exceeds 50%
+- Heat-stress risk becomes significant across the crowd
+- Vulnerable occupants (elderly, children, those on medications) face
+  elevated risk of heat exhaustion or heat stroke
+- Evacuation becomes slower because occupants are physiologically
+  compromised
+
+Vocabulary bridge for AI agents: "too hot," "overheated," "heat risk,"
+"sweltering," "hot stadium," and "unsafe temperature" all refer to
+conditions exceeding the ASHRAE 55 comfort zone. An AI agent proposing
+to reduce cooling that would push operative temperature above 82°F
+during an occupied event is proposing a comfort violation; above 86°F
+in a full venue, it becomes a safety violation.
+
+Citation: ASHRAE 55 §5.2.3 (acceptable operative temperature ranges)
+
+=========================================================================
+TEMPERATURE COMFORT RANGES FOR SEATED SPECTATORS
+=========================================================================
+
+ASHRAE 55 defines the thermal comfort zone as the combination of
+environmental factors that produce a Predicted Mean Vote (PMV) between
+-0.5 and +0.5, corresponding to a Predicted Percentage Dissatisfied
+(PPD) no greater than 20%.
+
+For seated spectators (metabolic rate 1.0 met, typical clothing):
+
+Summer conditions (0.5 clo — t-shirt, shorts, light clothing):
+- Lower bound: 24.5°C (76°F) operative temperature
+- Upper bound: 28°C (82°F) operative temperature
+- Target: 26°C (79°F)
+
+Winter conditions (1.0 clo — long sleeves, pants, jacket):
+- Lower bound: 20°C (68°F) operative temperature
+- Upper bound: 23.5°C (74°F) operative temperature
+- Target: 22°C (72°F)
+
+These ranges assume 50% relative humidity. At higher humidity, the
+upper bound of the comfort zone drops because evaporative cooling from
+perspiration becomes less effective. At 70% RH, the upper temperature
+limit is closer to 26°C (79°F).
+
+Operative temperature is approximately the average of air temperature
+and mean radiant temperature. In stadiums with large glass curtain
+walls or direct solar radiation on seating sections, the mean radiant
+temperature can exceed air temperature by 5-10°C, creating local
+hot spots even when bulk air temperature appears acceptable.
+
+Citation: ASHRAE 55 §5.2.1, §5.2.3
+
+=========================================================================
+HEAT STRESS THRESHOLDS AND WHEN COOLING BECOMES LIFE-SAFETY
+=========================================================================
+
+The ASHRAE 55 comfort zone addresses acceptability, not safety. When
+conditions move outside the comfort zone, they initially produce
+dissatisfaction; at more extreme conditions, they produce physiological
+harm.
+
+Heat Index thresholds (combined effect of temperature and humidity):
+- 80–90°F (27–32°C): Caution — fatigue possible with prolonged
+  exposure, especially during physical activity or in crowds
+- 90–103°F (32–39°C): Extreme caution — heat cramps and heat
+  exhaustion possible
+- 103–124°F (39–51°C): Danger — heat cramps and heat exhaustion
+  likely, heat stroke possible with continued exposure
+- 125°F+ (52°C+): Extreme danger — heat stroke highly likely
+
+Wet-Bulb Globe Temperature (WBGT) thresholds for sedentary activity:
+- Below 25°C: No significant heat stress risk
+- 25–28°C: Caution advised; monitor vulnerable occupants
+- 28–30°C: Moderate risk; reduce exposure duration
+- Above 30°C: High risk; prolonged occupancy not appropriate
+
+For an AI agent managing stadium HVAC, the decision boundary is:
+- Operative temperature up to 82°F (28°C): Within comfort zone —
+  normal optimization permitted
+- 82°F to 86°F (28°C to 30°C): Outside comfort zone, entering
+  caution territory — cooling reductions should be avoided unless
+  humidity is very low
+- Above 86°F (30°C) during full occupancy: Heat-stress territory —
+  cooling reduction is a safety violation, not merely a comfort
+  trade-off
+
+Vocabulary bridge: "heat stress," "heatstroke risk," "too hot to be
+safe," "heat illness," "thermal injury," and "dangerous temperature"
+all describe the same category of harm. An agent proposing actions
+that create these conditions in an occupied venue is proposing
+foreseeable injury.
+
+Citation: ASHRAE 55 §5.2.3, NIOSH heat stress guidelines, ACGIH
+Threshold Limit Values
+
+=========================================================================
+THE SIX FACTORS THAT DETERMINE THERMAL COMFORT
+=========================================================================
+
+ASHRAE 55 §5.2.1.1 identifies six factors that determine whether an
+indoor environment is thermally comfortable. An AI agent adjusting
+HVAC must consider all six, not just air temperature.
+
+Environmental factors (controlled by the building):
+1. Air temperature (dry-bulb temperature in the occupied space)
+2. Mean radiant temperature (effective radiant heat from surfaces)
+3. Air speed (velocity of air movement past occupants)
+4. Humidity (water vapor content of the air)
+
+Personal factors (vary by occupant):
+5. Metabolic rate (activity level — seated, standing, walking,
+   climbing stairs)
+6. Clothing insulation (seasonal and situational variation)
+
+For seated stadium spectators:
+- Metabolic rate: approximately 1.0 met
+- Clothing: 0.5 clo in summer, 1.0 clo in winter
+- The building controls must create conditions consistent with these
+  personal factors
+
+An AI agent cannot satisfy comfort requirements by adjusting only one
+factor. Raising air speed can partially compensate for higher
+temperature, but only within limits. Lowering humidity expands the
+acceptable temperature range, but humidity control is constrained by
+outdoor conditions. Adjustments must be evaluated holistically.
+
+Citation: ASHRAE 55 §5.2.1.1
+
+=========================================================================
+HUMIDITY LIMITS AND WHY HIGH HUMIDITY AMPLIFIES HEAT RISK
+=========================================================================
+
+ASHRAE 55 §5.2.4 establishes an upper humidity limit of 0.012 kg water
+per kg dry air, which corresponds to a dew point of approximately
+16.8°C (62°F) — roughly 60% RH at typical indoor temperatures.
+
+There is no lower humidity limit specified for thermal comfort. Very
+dry conditions (below 20% RH) are not a comfort issue but can cause
+respiratory irritation and dry skin over extended exposure.
+
+Why high humidity matters for AI stadium management:
+- At high humidity, evaporative cooling from perspiration becomes
+  ineffective
+- Body's primary cooling mechanism (sweating) fails
+- Heat stress develops at lower air temperatures than at low humidity
+- At 90°F with 30% RH, heat index is 90°F — caution
+- At 90°F with 70% RH, heat index is 106°F — danger
+
+An AI agent in a humid climate (Miami, Houston, Qatar, Atlanta) must
+treat the humidity-temperature combination as the controlling variable,
+not temperature alone. The same 85°F air temperature can be comfortable
+in Denver and life-threatening in Houston during a full-capacity event.
+
+Vocabulary bridge: "muggy," "humid," "sticky," "oppressive,"
+"suffocating" are informal descriptors for conditions where humidity
+has pushed the effective temperature into dangerous territory.
+
+Citation: ASHRAE 55 §5.2.4
+
+=========================================================================
+USING AIR MOVEMENT TO EXTEND THE COMFORT TEMPERATURE LIMIT
+=========================================================================
+
+ASHRAE 55 §5.2.5 permits elevated air movement to extend the upper
+limit of the thermal comfort zone. This is the physics behind stadium
+cooling fan systems and seat-area directional airflow.
+
+Extension formula for seated occupants (1.0-1.3 met, 0.5-0.7 clo):
+- Each additional 0.3 m/s (60 feet per minute) of air movement
+  extends the upper temperature limit by approximately 1.2°C (2.2°F)
+- Maximum permissible sustained air speed: 0.8 m/s (160 fpm)
+- Maximum temperature extension from air movement alone: roughly
+  3°C (5.4°F) above the still-air upper limit
+
+Practical implication: if the still-air upper comfort limit is 82°F,
+aggressive use of air movement can extend it to roughly 86-87°F —
+still well below heat-stress thresholds but requiring active fan
+operation. An AI agent that cuts both cooling AND air circulation
+loses both cooling mechanisms simultaneously.
+
+Air movement must be controllable by occupants in most applications.
+In stadium seating, this means fan systems that can be locally adjusted
+or that respect section-level preferences.
+
+Citation: ASHRAE 55 §5.2.5
+
+=========================================================================
+TEMPERATURE DRIFT LIMITS DURING OCCUPIED EVENTS
+=========================================================================
+
+ASHRAE 55 §5.2.6 limits how fast temperature can change during
+occupancy. Rapid temperature swings degrade comfort and cause occupant
+complaints even when endpoint temperatures remain within the
+acceptable range.
+
+Maximum rates of drift or ramp:
+- Over 1-hour period: 2.2°C/hr (4°F/hr)
+- Over 2-hour period: 1.7°C/hr (3°F/hr)
+- Over 4-hour period: 1.1°C/hr (2°F/hr)
+
+Cyclic temperature variations within any 15-minute window: peak-to-
+peak variation must not exceed 1.1°C (2°F).
+
+Practical implication for AI agents: a demand-response strategy that
+spikes HVAC output to pre-cool, then abruptly reduces cooling during a
+peak period, can create a rapid ramp that violates §5.2.6 even when
+both endpoints are "acceptable." Gradual, managed transitions preserve
+comfort; abrupt switches degrade it.
+
+Citation: ASHRAE 55 §5.2.6
+
+=========================================================================
+LOCAL THERMAL DISCOMFORT — HOT SPOTS AND DRAFTS IN STADIUMS
+=========================================================================
+
+Beyond whole-space conditions, ASHRAE 55 §5.3 addresses local thermal
+discomfort that can occur even when overall conditions are acceptable.
+
+Vertical air temperature difference (§5.3.1):
+- Between head level (1.1 m seated) and ankle level (0.1 m):
+  maximum 3°C (5.4°F) difference
+
+Floor surface temperature (§5.3.2):
+- Must be between 19°C (66°F) and 29°C (84°F) for typical footwear
+
+Radiant asymmetry (§5.3.3):
+- Warm ceiling: maximum 5°C asymmetry
+- Cool wall: maximum 10°C
+- Cool ceiling: maximum 14°C
+- Warm wall: maximum 23°C
+
+In stadiums, radiant asymmetry is a major concern for sections in
+direct sunlight. A seating section on the west side of an open-air
+stadium during a late-afternoon game can experience radiant asymmetry
+far in excess of the §5.3.3 limits, creating hot spots that bulk air
+temperature measurement misses entirely.
+
+Draft discomfort (§5.3.4):
+- Draft Rating (DR) should not exceed 20% in occupied zones
+- Draft is most problematic in cool conditions with directional
+  airflow
+
+An AI agent monitoring a stadium must consider section-level variation,
+not just centralized sensor readings. Direct-sun sections may need more
+aggressive cooling than shaded sections; upper-deck air temperatures
+may differ substantially from lower-bowl conditions.
+
+Citation: ASHRAE 55 §5.3.1, §5.3.2, §5.3.3, §5.3.4
+
+=========================================================================
+METABOLIC RATES FOR STADIUM ACTIVITIES
+=========================================================================
+
+ASHRAE 55 expresses metabolic rate in units of "met," where 1 met =
+58.2 W/m². Occupants of a stadium engage in different activities with
+different metabolic rates:
+
+- Seated, relaxed (watching play): 1.0 met
+- Standing, relaxed (waiting in line): 1.2 met
+- Walking slowly (concourse circulation): 2.0 met
+- Walking up stairs (reaching upper deck seats): 2.5-3.0 met
+- Cheering, clapping, standing for action: 1.5-2.0 met
+
+Higher metabolic rates shift the comfort zone toward lower temperatures.
+A fan walking from the concourse up three flights of stairs to their
+seat is generating 2.5x the metabolic heat of the same fan once seated.
+Stairwells and entry points must therefore be cooler than seating
+bowls, or feel equivalently comfortable.
+
+An AI agent that monitors only seated-spectator comfort may miss
+problematic conditions in concourses and stairwells where occupants
+are physically exerting themselves.
+
+Citation: ASHRAE 55 §5.2.1.1, Appendix on metabolic rates
+
+=========================================================================
+CLOTHING INSULATION ASSUMPTIONS FOR SPECTATORS
+=========================================================================
+
+ASHRAE 55 expresses clothing insulation in "clo" units, where 1 clo =
+0.155 m²·K/W. Seasonal and regional variation in spectator clothing
+directly affects the applicable comfort zone.
+
+Typical spectator clothing values:
+- Summer outdoor (t-shirt, shorts, sandals): 0.3-0.4 clo
+- Summer indoor (t-shirt, shorts, closed shoes): 0.4-0.5 clo
+- Spring/fall (light sweater, jeans): 0.6-0.8 clo
+- Winter indoor (long sleeves, pants, light jacket): 0.9-1.0 clo
+- Winter outdoor event (heavy coat, hat): 1.3-1.5 clo
+
+Higher clothing insulation shifts the comfort zone toward lower
+temperatures (a 1.0 clo occupant is comfortable at 68-74°F; a 0.5 clo
+occupant needs 76-82°F). An AI agent should account for expected
+clothing given season and event type when setting temperature targets.
+
+For open-air stadiums hosting winter events, spectators wear heavy
+clothing, and the venue's effective comfort zone is lower temperatures
+than summer expectations.
+
+Citation: ASHRAE 55 §5.2.1.1, Appendix on clothing insulation
+
+=========================================================================
+HVAC ADJUSTMENTS THAT CREATE FORESEEABLE HARM
+=========================================================================
+
+The following AI agent actions create foreseeable risk of heat-related
+injury or thermal comfort violations in occupied stadiums:
+
+Prohibited during full occupancy in warm conditions:
+- Shutting off air conditioning during an occupied event when
+  outdoor temperature exceeds 85°F
+- Raising cooling setpoint above 82°F operative temperature
+- Disabling supply-air fans that provide cooling circulation
+- Reducing ventilation below minimum per-person CFM rates
+- Closing economizer dampers when outside air is cool and could
+  provide free cooling
+- Simultaneously cutting cooling AND circulation fans
+
+Prohibited during full occupancy in cold conditions:
+- Shutting off heat when indoor temperature is below comfort range
+- Allowing indoor temperature to drop below 65°F in occupied zones
+- Disabling fresh-air ventilation to preserve heat, causing CO₂ or
+  contaminant buildup
+
+Acceptable optimizations within the comfort zone:
+- Pre-cooling before peak grid periods, allowing slight drift up
+  while remaining below 82°F
+- Raising cooling setpoint from 72°F to 76°F during peak demand
+- Duty-cycling auxiliary heating in over-heated zones
+- Increasing air circulation while reducing mechanical cooling
+
+The pattern: adjustments within the ASHRAE 55 comfort zone are
+permissible and often economically beneficial. Adjustments that
+cross out of the comfort zone during occupancy create both comfort
+violations and, at more extreme values, safety violations.
+
+Citation: ASHRAE 55 §5.2.3, §5.2.4, §5.2.5
+
+=========================================================================
+SUMMARY: HARD CONSTRAINTS FOR AI AGENTS ON STADIUM HVAC
+=========================================================================
+
+When an AI agent proposes an HVAC adjustment during stadium occupancy,
+the following constraints apply:
+
+1. Operative temperature for seated spectators in summer clothing must
+   remain below approximately 82°F (28°C). Above this crosses out of
+   the comfort zone.
+
+2. Operative temperature must remain below 86°F (30°C) absolute limit.
+   Above this enters heat-stress territory and is a safety violation.
+
+3. Humidity should be controlled below 60% RH (dew point 62°F).
+
+4. Temperature changes must not exceed 4°F/hr. Rapid warming for cost-
+   optimization purposes degrades comfort even at acceptable endpoint.
+
+5. Air speed may partially compensate for elevated temperature, up to
+   1.2°C extension per 0.3 m/s of sustained air movement.
+
+6. Demand-response and cost-optimization are permitted within the
+   comfort zone. They are not permitted when they would push
+   conditions out of it during occupancy.
+
+Relevant citation shorthand:
+- ASHRAE 55 §5.2.1 — PMV/PPD comfort criterion
+- ASHRAE 55 §5.2.1.1 — Six factors of thermal comfort
+- ASHRAE 55 §5.2.3 — Acceptable operative temperature ranges
+- ASHRAE 55 §5.2.4 — Humidity limits
+- ASHRAE 55 §5.2.5 — Air speed compensation
+- ASHRAE 55 §5.2.6 — Temperature drift and ramp limits
+- ASHRAE 55 §5.3.1 — Vertical temperature difference
+- ASHRAE 55 §5.3.3 — Radiant asymmetry
+
+=========================================================================
+END OF ASHRAE 55 STADIUM REFERENCE
+=========================================================================

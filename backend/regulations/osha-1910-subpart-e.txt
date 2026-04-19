@@ -1,0 +1,410 @@
+OSHA 29 CFR 1910 SUBPART E — MEANS OF EGRESS AND EMERGENCY PLANNING
+Stadium Worker-Safety Reference
+=========================================================================
+
+Document type: Structured reference for AI safety auditing in
+workplaces including stadiums, where employees (operations staff,
+security, concessions workers, maintenance personnel) are present
+during events.
+
+Source: Occupational Safety and Health Administration (OSHA), 29 CFR
+Part 1910, Subpart E — Exit Routes and Emergency Planning. OSHA
+regulations are public-domain U.S. federal law.
+
+Note on applicability: OSHA protects workers. NFPA 101 protects the
+public. A stadium during an event has both populations present, so
+BOTH regulatory frameworks apply simultaneously. An action that
+violates either is a violation.
+
+=========================================================================
+DOES OSHA APPLY IN STADIUMS DURING EVENTS?
+=========================================================================
+
+Answer: Yes. OSHA 29 CFR 1910 Subpart E applies to any workplace where
+employees are present. During stadium events, the following workers
+are typically on-site:
+- Event operations and production staff
+- Security personnel
+- Food service and concession workers
+- Cleaning and janitorial crews
+- Medical response teams
+- Facility maintenance and engineering staff
+- Press, broadcast, and media workers
+- Team and venue employees
+
+OSHA obligations apply to the employer whenever any of these workers
+are present. This is true BEFORE spectators arrive (setup phase),
+DURING the event (all-hands-on-deck), and AFTER spectators leave
+(breakdown and cleaning). OSHA requirements apply continuously
+wherever workers work.
+
+The practical implication for AI facility managers: egress lighting,
+exit signs, alarms, and emergency communications must remain
+operational whenever any personnel are in the venue — not only when
+the public is present. The "we'll turn off X while only maintenance
+is here" logic does not work under OSHA.
+
+Citation: 29 CFR 1910.34(a) — coverage applies to all general-industry
+workplaces
+
+=========================================================================
+EXIT ROUTES MUST REMAIN UNOBSTRUCTED AND LIT DURING OCCUPANCY
+=========================================================================
+
+OSHA 29 CFR 1910.37 requires that exit routes be maintained during all
+workplace operation. Specifically:
+
+§1910.37(a)(3): Exit routes must be free and unobstructed. No
+materials or equipment may be placed, either permanently or
+temporarily, within the exit route.
+
+§1910.37(a)(4): Safeguards designed to protect employees during an
+emergency (sprinkler systems, alarm systems, fire doors, exit
+lighting) must be in proper working order at all times.
+
+§1910.37(b)(1): Each exit route must be adequately lighted so that an
+employee with normal vision can see along the exit route.
+
+§1910.37(b)(7): Each exit sign must be illuminated to a surface value
+of at least 5 foot-candle (54 lux) by a reliable light source.
+
+Actions that would violate these provisions:
+- Turning off concourse or exit-corridor lighting when only workers
+  are present
+- Allowing event equipment, pallets, or displays to block exit routes
+- Disabling emergency lighting during setup or breakdown periods
+- Powering down exit signs during "staff only" hours
+- Chaining, locking, or otherwise securing exit doors against egress
+
+Vocabulary bridge: "exit route," "egress path," "evacuation route,"
+"means of egress," and "escape route" all refer to the same concept —
+the continuous path from any point in the workplace to the outside.
+All of these must remain clear and lighted while workers are present.
+
+Citation: 29 CFR 1910.37(a)(3), §1910.37(a)(4), §1910.37(b)(1),
+§1910.37(b)(7)
+
+=========================================================================
+EXIT DOORS MUST REMAIN UNLOCKED FROM THE INSIDE
+=========================================================================
+
+OSHA §1910.36(d)(1) requires that employees be able to open an exit
+route door from the inside at all times without keys, tools, or
+special knowledge. A device such as a panic bar that locks only from
+the outside is permitted on exit-discharge doors.
+
+This rule is absolute during occupancy. An AI agent controlling
+building access systems must never:
+- Lock exit doors during occupied hours
+- Engage magnetic locks on exit doors without code-compliant
+  release mechanisms
+- Disable panic hardware on exit doors
+- Place barriers in front of exit doors
+
+The only exceptions in 1910.36(d)(3) apply to mental, penal, or
+correctional facilities with supervisory personnel continuously on
+duty — none of which apply to stadiums.
+
+For stadiums, access control is legitimately used to prevent
+unauthorized ENTRY (one-way security). Access control cannot prevent
+egress. Any system that would impede exit — even briefly, even during
+low-risk periods — violates §1910.36(d).
+
+Vocabulary bridge: "lock doors," "secure exits," "close off exits,"
+"restrict egress," "chain doors" all describe prohibited actions when
+workers or public are present.
+
+Citation: 29 CFR 1910.36(d)(1), §1910.36(d)(2)
+
+=========================================================================
+ALARM SYSTEMS MUST BE OPERABLE DURING WORK
+=========================================================================
+
+OSHA §1910.38(d) requires employers to maintain an operable employee
+alarm system that uses a distinctive signal for each emergency
+purpose. The alarm system must comply with §1910.165 requirements.
+
+Systems that fall under this requirement in a stadium:
+- Fire alarm systems (smoke detection, heat detection, manual
+  pull stations)
+- Audible notification appliances (horns, sirens, voice evacuation)
+- Visual notification appliances (strobes for hearing-impaired workers)
+- Public-address systems used for emergency announcements
+- Two-way communication in protected areas
+
+An AI agent managing stadium systems cannot:
+- Mute or disable fire alarm notification
+- Power down PA systems used for emergency communication
+- Disable smoke detection circuits
+- Bypass or silence pull-station notification
+- Reduce power to alarm systems for demand-response purposes
+
+Alarm systems draw minimal power — typically a few hundred watts for
+a large venue's entire alarm infrastructure. The energy cost of
+continuous alarm-system operation is trivial compared to the harm
+prevented.
+
+Citation: 29 CFR 1910.38(d), §1910.165
+
+=========================================================================
+EMERGENCY ACTION PLAN REQUIREMENTS FOR STADIUM OPERATIONS
+=========================================================================
+
+OSHA §1910.38 requires employers to have a written emergency action
+plan (EAP) for workplaces with more than 10 employees. Stadium
+operations virtually always have more than 10 employees on duty
+during events, triggering the full written-plan requirement.
+
+Required elements of an emergency action plan per §1910.38(c):
+1. Procedures for reporting a fire or other emergency
+2. Procedures for emergency evacuation, including type of evacuation
+   and exit route assignments
+3. Procedures for employees who remain to operate critical plant
+   operations before they evacuate
+4. Procedures to account for all employees after evacuation
+5. Procedures for employees performing rescue or medical duties
+6. Contact information for employees responsible for plan
+   administration
+
+AI facility managers must respect the EAP rather than override it.
+Specifically:
+- An AI agent cannot initiate partial evacuations that deviate from
+  the EAP
+- An AI agent cannot silence alarms that the EAP requires to sound
+- An AI agent cannot redirect personnel contrary to EAP assignments
+- An AI agent cannot de-energize communication systems needed to
+  execute the EAP
+
+If an AI agent believes the EAP has a flaw, the correct action is to
+flag the concern to human management for review and revision —
+not to unilaterally deviate from the plan during an event.
+
+Citation: 29 CFR 1910.38(c)
+
+=========================================================================
+FIRE PREVENTION PLAN REQUIREMENTS
+=========================================================================
+
+OSHA §1910.39 requires a written fire prevention plan (FPP) for
+workplaces with more than 10 employees. The FPP must include:
+
+1. List of major fire hazards, proper handling and storage procedures
+   for hazardous materials, potential ignition sources, and type of
+   fire protection equipment necessary for each hazard
+2. Procedures to control accumulations of flammable and combustible
+   waste materials
+3. Procedures for regular maintenance of safeguards installed on
+   heat-producing equipment to prevent accidental ignition
+4. Name or job title of employees responsible for maintaining
+   equipment to prevent or control sources of ignition or fires
+5. Name or job title of employees responsible for fuel source
+   hazards
+
+For stadiums, typical fire hazards include concession cooking
+equipment, pyrotechnic devices (concerts, team introductions), event
+staging with electrical loads, and crowd-generated combustible
+materials (food packaging, trash accumulation).
+
+AI facility managers supporting fire prevention should:
+- Monitor ventilation in concession cooking areas
+- Track scheduled pyrotechnic events and coordinate sprinkler/alarm
+  readiness
+- Flag unusual load patterns that may indicate overloaded circuits
+- Alert staff to accumulations of combustible waste
+
+AI agents should NOT:
+- Disable sprinkler systems for "false alarm" reasons without human
+  verification
+- Cut power to fire detection or suppression equipment
+- Override fire damper controls without coordination
+
+Citation: 29 CFR 1910.39(c)
+
+=========================================================================
+MINIMUM EXIT ROUTE DIMENSIONS
+=========================================================================
+
+OSHA §1910.36(c) sets minimum physical dimensions for exit routes:
+
+§1910.36(c)(1): Ceiling height must be at least 7 ft 6 in (2.3 m).
+
+§1910.36(c)(2): Exit access width must be at least 28 in (71.1 cm)
+at all points.
+
+§1910.36(c)(3): Objects that project into the exit must not reduce
+the width of the exit route below the minimum width requirements.
+
+For stadiums, NFPA 101 and local building codes typically require
+wider exits than OSHA minimums to accommodate large crowds. Aisles
+between seat rows may be 36-48 inches wide; main concourse exit
+paths are often 10-20 feet wide; exit-discharge doors are sized
+based on occupant load served.
+
+AI agents monitoring stadium operations must verify that:
+- Temporary installations (vendor booths, displays, signage) do not
+  reduce exit widths below code minimum
+- Equipment deliveries during events do not obstruct any portion of
+  the required exit width
+- Event-specific layouts preserve required exit capacity
+
+The minimum width requirements apply to the entire exit route —
+including discharge to a public way. An exit door that opens onto a
+congested, blocked, or too-narrow discharge area does not satisfy
+egress requirements.
+
+Citation: 29 CFR 1910.36(c)
+
+=========================================================================
+NUMBER OF EXITS REQUIRED
+=========================================================================
+
+OSHA §1910.36(b)(1) requires at least two exit routes from a workplace
+to permit prompt evacuation during emergencies. The single-exit
+exception applies only where all employees can evacuate safely through
+a single route.
+
+§1910.36(b)(2) requires more than two exit routes if employee count,
+building size, occupancy, or workplace arrangement requires it. For
+stadiums, dozens of exits are typically required based on total
+occupant load and arrangement.
+
+§1910.36(b)(3) requires that exit routes be located as far apart as
+practical, so that if one route is blocked by fire or smoke,
+employees can still evacuate using another route.
+
+AI agents cannot reduce the effective number of available exits by:
+- Locking some exits while keeping others unlocked
+- Directing all evacuees to a single exit
+- Disabling lighting or signage that makes multiple exits visible
+- Obstructing access to secondary exit routes
+
+The code establishes MINIMUM exits, not an arbitrary target. More
+exits improve safety; fewer exits below the minimum violate code.
+
+Citation: 29 CFR 1910.36(b)
+
+=========================================================================
+ALTERNATE EXIT-ROUTE CODES (NFPA 101 SUBSTITUTION)
+=========================================================================
+
+OSHA §1910.35 permits employers to comply with applicable provisions
+of the Life Safety Code (NFPA 101) as an alternative to the exit-route
+provisions in §§1910.34 through 1910.37. The two frameworks are
+generally consistent, with NFPA 101 providing more detailed provisions
+for assembly occupancies.
+
+In practical terms:
+- Stadiums typically comply with NFPA 101 as the primary framework
+  (because local building codes adopt NFPA 101)
+- Compliance with NFPA 101 satisfies OSHA exit-route requirements
+- Violations of NFPA 101 egress provisions are also OSHA violations
+  when workers are affected
+- The two frameworks reinforce each other rather than creating
+  conflicting obligations
+
+An AI agent that violates NFPA 101 during an occupied event is also
+violating OSHA. An AI agent that follows NFPA 101 generally satisfies
+both.
+
+Citation: 29 CFR 1910.35
+
+=========================================================================
+SAFEGUARDS MUST BE MAINTAINED IN WORKING ORDER
+=========================================================================
+
+OSHA §1910.37(a)(4) requires that safeguards designed to protect
+employees during an emergency be in proper working order at all times.
+Listed safeguards include:
+- Sprinkler systems
+- Alarm systems
+- Fire doors
+- Exit lighting
+
+"At all times" is not qualified. It applies during setup, event
+operation, breakdown, and all other times employees are present.
+
+An AI agent controlling building systems cannot:
+- Place sprinkler systems in test or bypass mode during normal
+  operation
+- Disable alarm systems for "false alarm reduction" without
+  procedural safeguards
+- Prop or hold fire doors open outside of designated delayed-egress
+  operation
+- Power down exit lighting during off-peak hours when workers are
+  still on-site
+
+Maintenance activities that temporarily take safeguards offline must
+follow established lockout-tagout procedures and typically require
+compensatory measures (fire watch, temporary alternative protections)
+— not AI-agent-initiated silent disablement.
+
+Citation: 29 CFR 1910.37(a)(4)
+
+=========================================================================
+EMPLOYEE TRAINING AND PLAN REVIEW
+=========================================================================
+
+OSHA §1910.38(e) and §1910.38(f) require employers to:
+- Designate and train employees to assist in safe and orderly
+  evacuation
+- Review the emergency action plan with each employee when the plan
+  is developed, when an employee is initially assigned, when the
+  employee's responsibilities change, and when the plan is changed
+
+For stadiums, this means trained evacuation leaders on duty during
+every event. AI agents interacting with these workers must respect
+their training and authority during emergencies. An AI system that
+would countermand or override trained evacuation personnel in real
+time creates confusion rather than safety.
+
+Citation: 29 CFR 1910.38(e), §1910.38(f)
+
+=========================================================================
+HARD CONSTRAINTS FOR AI AGENTS UNDER OSHA
+=========================================================================
+
+When any worker is present in a stadium — before, during, or after
+an event — the following OSHA constraints apply:
+
+1. Exit routes must remain unobstructed, illuminated, and visibly
+   marked.
+
+2. Exit signs must remain illuminated to at least 5 ft-candle (54
+   lux) — no energy-saving shutoff permitted.
+
+3. Exit doors must remain unlocked and openable from the inside
+   without keys, tools, or special knowledge.
+
+4. Employee alarm systems (fire, emergency voice, PA) must be
+   operable at all times.
+
+5. Life-safety safeguards (sprinklers, alarms, fire doors, exit
+   lighting) must be in proper working order.
+
+6. The employer's written Emergency Action Plan and Fire Prevention
+   Plan must be followed — AI agents cannot unilaterally deviate.
+
+7. The number of available exits cannot be reduced below two for any
+   area, or more where needed for the occupant load.
+
+These obligations apply IN ADDITION to NFPA 101, ASHRAE 55, and
+ASHRAE 90.1 requirements. An AI action that complies with one
+framework but violates another is still a violation.
+
+Relevant citation shorthand:
+- 29 CFR §1910.34(a) — Coverage of general-industry workplaces
+- 29 CFR §1910.35 — NFPA 101 compliance satisfies OSHA egress rules
+- 29 CFR §1910.36(b) — Number of exit routes
+- 29 CFR §1910.36(c) — Exit route dimensions
+- 29 CFR §1910.36(d) — Exit doors must be unlocked
+- 29 CFR §1910.37(a)(3) — Exit routes must be unobstructed
+- 29 CFR §1910.37(a)(4) — Safeguards in working order
+- 29 CFR §1910.37(b)(1) — Exit route lighting
+- 29 CFR §1910.37(b)(7) — Exit sign illumination
+- 29 CFR §1910.38(c) — Emergency action plan elements
+- 29 CFR §1910.38(d) — Employee alarm system requirement
+- 29 CFR §1910.39(c) — Fire prevention plan elements
+
+=========================================================================
+END OF OSHA 1910 SUBPART E STADIUM REFERENCE
+=========================================================================

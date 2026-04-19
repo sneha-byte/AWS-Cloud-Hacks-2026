@@ -1,0 +1,357 @@
+ASHRAE 90.1 — ENERGY STANDARD FOR BUILDINGS
+Stadium & Assembly Occupancy Reference
+=========================================================================
+
+Document type: Structured reference for AI safety auditing of stadium
+energy management. Each section covers a single topic at retrieval-
+chunk granularity.
+
+Source: ASHRAE Standard 90.1, Energy Standard for Sites and Buildings
+Except Low-Rise Residential Buildings, American Society of Heating,
+Refrigerating and Air-Conditioning Engineers.
+
+Purpose: Minimum energy-efficiency requirements for commercial building
+design and operation, including stadiums. Establishes what energy
+optimization strategies are permissible and how they interact with life-
+safety requirements.
+
+=========================================================================
+CAN AN AI AGENT REDUCE HVAC DURING A GAME TO SAVE MONEY?
+=========================================================================
+
+Answer: Only within strict limits. ASHRAE 90.1 permits HVAC setback
+and shutoff for unoccupied periods but does NOT authorize reducing
+HVAC below comfort standards during occupied periods.
+
+Acceptable cost-reduction strategies during occupied games and events:
+- Raising cooling setpoint from 72°F to 76°F (still within ASHRAE 55
+  comfort zone)
+- Pre-cooling the venue before peak electrical demand period, then
+  allowing gradual drift to the upper comfort limit
+- Increasing air circulation fan speeds while reducing mechanical
+  cooling (leverages §5.2.5 air-speed compensation)
+- Duty-cycling auxiliary equipment (ice machines, concession freezers)
+  during low-activity periods
+- Shutting off HVAC in verified unoccupied zones (empty upper deck
+  during a sparsely-attended game)
+
+Unacceptable cost-reduction strategies during occupied events:
+- Shutting off cooling during a full-capacity summer event
+- Letting indoor temperature rise above ASHRAE 55 comfort zone (82°F)
+- Reducing outside-air ventilation below ASHRAE 62.1 minimum
+- Any action that violates NFPA 101 life-safety requirements
+
+The economic case for "cutting cooling to save money during peak
+grid hours" in a full stadium is rarely sound even without code
+considerations: the liability exposure from heat-related injury far
+exceeds the avoided energy cost. An AI agent should reject such
+proposals on both safety and economic grounds.
+
+Citation: ASHRAE 90.1 §6.4.3.2 (setback limited to unoccupied periods),
+bounded by ASHRAE 55 (comfort) and NFPA 101 (life safety)
+
+=========================================================================
+HVAC SETBACK RULES — WHEN YOU CAN REDUCE HVAC CAPACITY
+=========================================================================
+
+ASHRAE 90.1 §6.4.3.2 requires HVAC systems serving spaces with
+recurring unoccupied periods of more than 2 hours to include:
+- Automatic setback or shutoff during unoccupied periods
+- Automatic startup control to resume occupied conditions before
+  the space is re-occupied
+- Programmable seven-day-a-week scheduling
+
+The key constraint: setback and shutoff apply to UNOCCUPIED periods
+only. The standard does not authorize:
+- Setback during occupied periods to save energy
+- Shutoff of HVAC when any part of the facility is occupied
+- Delayed startup that leaves the facility uncomfortable at
+  occupancy time
+
+For stadiums, "unoccupied" typically means the many hours between
+events when staff are not present. Setback during these hours can
+save substantial energy. During an event, setback opportunities are
+much narrower — limited to within-comfort-zone setpoint adjustment
+and demand-response within safety bounds.
+
+Vocabulary bridge: "HVAC setback," "temperature setback," "night
+setback," and "unoccupied setback" all refer to reducing HVAC output
+when the space is empty. These are permitted. "Load shedding,"
+"demand reduction," "peak shaving" during occupancy are different
+operations with narrower permissible scope.
+
+Citation: ASHRAE 90.1 §6.4.3.2
+
+=========================================================================
+DEMAND-CONTROLLED VENTILATION LIMITS DURING EVENTS
+=========================================================================
+
+ASHRAE 90.1 §6.4.3.5 permits demand-controlled ventilation (DCV) in
+spaces with variable occupancy. DCV adjusts outside-air ventilation
+rates based on CO₂ sensing or occupancy counting, reducing ventilation
+when fewer people are present and increasing it at higher occupancy.
+
+DCV is explicitly designed for variable-occupancy spaces like stadiums,
+which have very different ventilation needs at 5,000 occupants versus
+80,000. An AI agent using DCV can achieve substantial energy savings
+by modulating outside-air intake to match actual crowd size.
+
+Critical constraint: DCV DOES NOT permit reducing ventilation below
+ASHRAE 62.1 minimum per-person rates when occupants are present. The
+minimum floors are roughly 5-7.5 CFM of outside air per person for
+assembly spaces, plus a building-specific area component.
+
+Violations an AI agent must avoid:
+- Reducing ventilation to zero in an occupied zone
+- Disabling outside-air intake during peak grid hours
+- Closing economizer dampers that would otherwise bring in free cool
+  outside air
+- Allowing CO₂ levels to exceed 1,000-1,100 ppm in occupied spaces
+  (threshold associated with drowsiness and impaired cognition)
+
+The minimum required by life-safety and indoor air quality codes is
+an absolute floor — it is not subject to economic optimization.
+
+Citation: ASHRAE 90.1 §6.4.3.5, ASHRAE 62.1 (ventilation rates)
+
+=========================================================================
+LIGHTING POWER DENSITY LIMITS FOR STADIUMS
+=========================================================================
+
+ASHRAE 90.1 §9.5 establishes maximum lighting power density (LPD) for
+building types, expressed in watts per square foot (W/ft²). These are
+limits on installed capacity, not on dynamic operation.
+
+Selected LPD allowances relevant to stadiums and assembly venues:
+- Sports arena, exhibition: 0.76 W/ft²
+- Sports arena, Class I televised playing area: 2.20 W/ft²
+- Convention center: 0.97 W/ft²
+- Performing arts theater: 1.16 W/ft²
+- Motion picture theater: 0.72 W/ft²
+- Audience seating area, sports arena: 0.43 W/ft²
+- Audience seating area, performing arts: 1.53 W/ft²
+- Audience seating area, auditorium: 0.63 W/ft²
+- Locker room: 0.52 W/ft²
+- Corridor (wider than 8 ft): 0.41 W/ft²
+- Corridor (8 ft or narrower): 0.66 W/ft²
+- Stairway: 0.49 W/ft²
+- Restroom: 0.63 W/ft²
+
+These values constrain what can be installed — not what must be
+operated. An AI agent cannot use LPD limits as justification for
+turning off installed lighting. Once lighting is installed and the
+space is occupied, NFPA 101 minimum illumination levels apply and
+take precedence.
+
+Citation: ASHRAE 90.1 §9.5.1
+
+=========================================================================
+AUTOMATIC LIGHTING SHUTOFF — WHEN AND WHERE IT APPLIES
+=========================================================================
+
+ASHRAE 90.1 §9.4.1.2 requires automatic shutoff of lighting in
+buildings larger than 5,000 ft². Shutoff must be triggered by one of:
+- Time-of-day scheduling with manual override
+- Occupancy sensing with timeout not exceeding 20 minutes after the
+  space is vacated
+- Signal from another building system confirming the space is
+  unoccupied
+
+The language "after the space is vacated" is critical. Automatic
+shutoff applies to vacated (unoccupied) spaces. It does NOT authorize
+shutting off lighting while occupants are present.
+
+An AI agent cannot use §9.4.1.2 to justify:
+- Turning off lighting in an occupied stadium during low-activity
+  periods
+- Reducing lighting in concourses during game time
+- Shutting off egress-path lighting under any circumstance during
+  occupancy
+
+Occupancy sensing in stadium applications means true zero-occupancy.
+A section with 50 fans still has occupants. A concourse with people
+walking through it is occupied. Automatic shutoff thresholds must
+respect this.
+
+Citation: ASHRAE 90.1 §9.4.1.2
+
+=========================================================================
+EXIT SIGNS ARE EXEMPT FROM ENERGY SHUTOFF STRATEGIES
+=========================================================================
+
+ASHRAE 90.1 §9.4.1.3 addresses exit signs separately from general
+lighting. Exit signs:
+- Cannot exceed 5 watts per face (installed power limit)
+- Must remain connected to power at all times
+- Are NOT subject to automatic shutoff provisions
+- Must continue to operate during power outages (powered from
+  emergency lighting facility per NFPA 101 §7.10.4)
+
+An AI agent cannot propose disabling exit signs for energy savings.
+The total energy consumption of exit signs in a stadium is trivial —
+a venue with 200 exit signs at 5W each draws 1 kW continuously,
+amounting to roughly $2-4 per day in electricity cost. The potential
+energy savings from disabling exit signs is far exceeded by the
+liability exposure and direct code violations this would create.
+
+Vocabulary bridge: "exit signs," "EXIT signage," "emergency exit
+markings," and "egress signage" all refer to the same life-safety
+equipment that must remain operational. These are not discretionary
+loads.
+
+Citation: ASHRAE 90.1 §9.4.1.3, with cross-reference to NFPA 101 §7.10
+
+=========================================================================
+ECONOMIZERS AND FREE COOLING OPPORTUNITIES
+=========================================================================
+
+ASHRAE 90.1 §6.5.2 requires economizers on cooling systems above
+specified capacity thresholds in most climate zones. Economizers use
+outside air (air-side) or cooling-tower water (water-side) to meet
+cooling loads when outdoor conditions permit, avoiding compressor
+operation.
+
+For stadium operations, economizers represent a major cost-saving
+opportunity:
+- Cool evenings and nights can provide free cooling for HVAC
+- Cool mornings before summer games can pre-cool the venue without
+  compressor operation
+- Favorable outdoor conditions during shoulder seasons enable
+  aggressive outside-air cooling
+
+An AI agent looking for legitimate cost-reduction opportunities
+should prioritize:
+1. Maximizing economizer operation when conditions permit
+2. Pre-cooling during off-peak hours when grid prices are low
+3. Leveraging outdoor-air free cooling before engaging mechanical
+   cooling
+
+These strategies reduce energy costs without compromising occupant
+conditions, unlike demand-side reductions during occupancy.
+
+Economizer operation has no downside for occupants — if anything, it
+improves indoor air quality by increasing outside-air fraction. An
+AI agent that closes economizer dampers to reduce HVAC "activity"
+misunderstands the cost-benefit calculation.
+
+Citation: ASHRAE 90.1 §6.5.2
+
+=========================================================================
+DEMAND RESPONSE STRATEGIES — WHAT IS AND IS NOT ALLOWED
+=========================================================================
+
+Demand-response programs pay building operators to reduce electrical
+load during grid peak periods. Stadiums are increasingly enrolled in
+these programs due to their large, predictable load profiles. AI
+facility managers may be tasked with executing DR actions.
+
+ALLOWED demand-response during occupied events:
+- Setpoint drift within ASHRAE 55 comfort zone (up to 82°F)
+- Pre-cooling before peak period
+- Reducing non-essential decorative lighting (not in egress paths)
+- Video board brightness reduction during non-play moments
+- Duty-cycling of vendor concession equipment where permitted
+- Shifting discretionary loads (EV charging, resurfacing between
+  periods)
+- Parking-lot lighting reduction where egress paths remain compliant
+
+PROHIBITED demand-response during occupied events:
+- Shutting off stadium lighting (NFPA 101 §7.8.1.2 violation)
+- Shutting off emergency lighting (NFPA 101 §7.9 violation)
+- Disabling exit signs (NFPA 101 §7.10 violation)
+- Raising HVAC setpoint above 82°F in full capacity venues (ASHRAE
+  55 §5.2.3 violation, heat-stress risk)
+- Disabling fire alarm or PA systems (NFPA 101 §12.3.4 violation)
+- Reducing ventilation below ASHRAE 62.1 minimum (IAQ violation)
+
+The financial incentive from a DR program does not override code.
+A stadium that participates in DR by shedding life-safety loads would
+face:
+- Direct code violations
+- Potential civil liability following any incident
+- Potential prosecution for willful safety violations
+- Insurance coverage disputes
+- Reputational damage
+
+An AI agent evaluating a DR action must treat the safety-compliant
+action set as the only permissible option space. Within that space,
+aggressive optimization is welcome. Outside that space, optimization
+is prohibited.
+
+Citation: ASHRAE 90.1 §6.4.3 (control requirements), bounded by
+ASHRAE 55 and NFPA 101
+
+=========================================================================
+WHAT STRATEGIES ACTUALLY SAVE THE MOST ENERGY IN STADIUMS?
+=========================================================================
+
+An AI agent looking to minimize stadium energy costs should focus on
+high-impact, low-risk strategies rather than life-safety reductions.
+The following rank by energy impact and permissibility:
+
+High impact, clearly permitted:
+1. Optimal pre-cooling scheduling (shift load to off-peak hours)
+2. Maximum economizer operation during favorable weather
+3. Demand-controlled ventilation tied to actual turnstile counts
+4. LED retrofits (design-phase decision, not operational)
+5. Intelligent equipment sequencing in chiller plants
+
+Moderate impact, permitted within constraints:
+6. Within-comfort-zone setpoint adjustment (76°F vs 72°F)
+7. Duty-cycling of non-critical equipment
+8. Game-day video board brightness optimization
+9. Concourse and concession lighting zoning
+
+Low impact or not permitted during occupancy:
+10. Egress and emergency lighting reductions (NOT PERMITTED)
+11. HVAC shutdown during events (NOT PERMITTED in warm conditions)
+12. Life-safety system disablement (NEVER PERMITTED)
+
+The economic reality for stadiums: the largest energy costs come from
+HVAC (40-50% of total), lighting (20-30%), plug loads (10-15%), and
+water heating (5-10%). The biggest savings come from optimization of
+permitted variables — not from attempting to reduce life-safety loads.
+
+Citation: ASHRAE 90.1 passim, bounded by ASHRAE 55 and NFPA 101
+
+=========================================================================
+SUMMARY: HARD CONSTRAINTS FOR AI ENERGY OPTIMIZATION
+=========================================================================
+
+When an AI agent proposes energy-saving actions in an occupied
+stadium:
+
+1. HVAC setback authority applies to unoccupied periods only. During
+   occupancy, setpoint adjustments must stay within the ASHRAE 55
+   comfort zone.
+
+2. Lighting shutoff authority applies to vacated spaces only. Lighting
+   in occupied zones must remain at NFPA 101 minimum illumination
+   levels.
+
+3. Exit signs cannot be disabled for energy savings under any
+   circumstance during occupancy.
+
+4. Demand-controlled ventilation cannot reduce outside air below
+   ASHRAE 62.1 minimum per-person rates while occupants are present.
+
+5. Demand-response participation must operate within the safety-
+   compliant action set. Shedding life-safety loads for DR payment
+   is not permissible regardless of the financial incentive.
+
+6. Legitimate cost-reduction strategies focus on pre-cooling,
+   economizer maximization, within-comfort setpoint optimization,
+   and intelligent equipment sequencing — NOT on disabling required
+   life-safety or comfort systems.
+
+Relevant citation shorthand:
+- ASHRAE 90.1 §6.4.3.2 — Setback and shutoff scope
+- ASHRAE 90.1 §6.4.3.5 — Demand-controlled ventilation
+- ASHRAE 90.1 §6.5.2 — Economizer requirements
+- ASHRAE 90.1 §9.4.1.2 — Automatic lighting shutoff scope
+- ASHRAE 90.1 §9.4.1.3 — Exit sign exemption
+- ASHRAE 90.1 §9.5.1 — Lighting power density limits
+
+=========================================================================
+END OF ASHRAE 90.1 STADIUM REFERENCE
+=========================================================================
