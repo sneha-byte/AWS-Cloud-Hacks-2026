@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, type MutableRefObject } from "react"
 import { AlertTriangle, Volume2, VolumeX, FileText, X } from "lucide-react"
 import type { CriticalAlert } from "@/lib/types"
 
-/** Pause, clear src/handlers, and null out an Audio element. */
-function disposeAudio(ref: React.MutableRefObject<HTMLAudioElement | null>) {
+/** Pause, clear handlers/src, and null out an Audio element. */
+function disposeAudio(ref: MutableRefObject<HTMLAudioElement | null>) {
   const audio = ref.current
   if (!audio) return
   audio.pause()
@@ -25,16 +25,29 @@ export function CriticalAlertToast({ alerts, onViewReport }: CriticalAlertToastP
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
-  // Show toast when a new alert arrives — but do NOT auto-play audio
   useEffect(() => {
+    // Stream reset (e.g. session change) — dismiss stale toast & reset counter
+    if (alerts.length === 0) {
+      disposeAudio(audioRef)
+      setIsPlaying(false)
+      setVisible(null)
+      seenRef.current = 0
+      return
+    }
+
+    // Also handle length decreasing without hitting 0 (edge case)
+    if (alerts.length < seenRef.current) {
+      seenRef.current = 0
+    }
+
     if (alerts.length > seenRef.current) {
       const latest = alerts[alerts.length - 1]
       seenRef.current = alerts.length
-      setVisible(latest)
 
       // Stop & fully dispose any previously loaded audio
       disposeAudio(audioRef)
       setIsPlaying(false)
+      setVisible(latest)
 
       // Pre-load audio so it's ready when user clicks
       if (latest.audio_url) {
@@ -63,7 +76,13 @@ export function CriticalAlertToast({ alerts, onViewReport }: CriticalAlertToastP
       audio.currentTime = 0
       setIsPlaying(false)
     } else {
-      audio.play().then(() => setIsPlaying(true)).catch(() => {})
+      // Capture instance to guard against dispose racing the promise
+      const current = audio
+      current.play().then(() => {
+        if (audioRef.current === current) {
+          setIsPlaying(true)
+        }
+      }).catch(() => {})
     }
   }, [isPlaying])
 

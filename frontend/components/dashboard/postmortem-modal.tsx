@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, type MutableRefObject } from "react"
 import { Volume2, VolumeX } from "lucide-react"
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
 import type { Postmortem, CriticalAlert } from "@/lib/types"
 
 /** Pause, clear handlers/src, and null out an Audio element. */
-function disposeAudio(ref: React.MutableRefObject<HTMLAudioElement | null>) {
+function disposeAudio(ref: MutableRefObject<HTMLAudioElement | null>) {
   const audio = ref.current
   if (!audio) return
   audio.pause()
@@ -38,7 +38,7 @@ export function PostmortemModal({ postmortems, alerts, open, onOpenChange }: Pos
     ? alerts.find((a) => a.trace_id === latest.trace_id)
     : undefined
 
-  // Dispose audio when modal closes or on unmount
+  // Dispose audio when modal closes
   useEffect(() => {
     if (!open) {
       disposeAudio(audioRef)
@@ -46,6 +46,7 @@ export function PostmortemModal({ postmortems, alerts, open, onOpenChange }: Pos
     }
   }, [open])
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => disposeAudio(audioRef)
   }, [])
@@ -67,8 +68,14 @@ export function PostmortemModal({ postmortems, alerts, open, onOpenChange }: Pos
         audio.onended = () => setIsPlaying(false)
         audioRef.current = audio
       }
-      audioRef.current.currentTime = 0
-      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
+      // Capture instance to guard against close/dispose racing the promise
+      const current = audioRef.current
+      current.currentTime = 0
+      current.play().then(() => {
+        if (audioRef.current === current) {
+          setIsPlaying(true)
+        }
+      }).catch(() => {})
     } catch {
       // ignore
     }
